@@ -10,11 +10,19 @@
   <body>
     <header>
       <div>
-        <input type="text" />
-        <i data-feather="search"></i>
+        <input type="text" id="search-bar" />
+        <i data-feather="search" id="search-i"></i>
       </div>
     </header>
-    <main></main>
+    <main>
+      <section class="inventory-display">
+        <div class="inventory-grid" id="inventoryGrid"></div>
+      </section>
+    </main>
+    <div id="contextMenu" class="context-menu" style="display: none">
+      <button id="editContextBtn">Edit item</button
+      ><button id="deleteContextBtn">Delete item</button>
+    </div>
     <nav>
       <a href="#"><i data-feather="home"></i></a>
       <a href="#"><i data-feather="plus-circle"></i></a>
@@ -23,5 +31,6 @@
     <script>
       feather.replace();
     </script>
+    <script src="script.js"></script>
   </body>
 </html>

@@ -107,6 +107,9 @@ nav a:hover {
   z-index: 1;
   font-size: 2.1em;
 }
+.inventory-item img {
+  user-select: none;
+}
 .inventory-item:hover {
   transform: translateY(-5px);
 }

@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const contextMenu = document.getElementById("contextMenu");
   const editContextBtn = document.getElementById("editContextBtn");
   const deleteContextBtn = document.getElementById("deleteContextBtn");
+  const longPressThreshold = 700;
+  let isLongPress = false;
+  let pressTimer;
+  let starX, startY;
   let currentContextitemId = null;
   function renderInventory(itemsToRender) {
     inventoryGrid.innerHTML = "";
@@ -43,9 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderInventory(inventory);
-  function showContextMenu(e) {
-    // e.preventDefault();
-    const itemDiv = e.target.closest(".inventory-item");
+  function showContextMenu(e, targetElement) {
+    e.preventDefault();
+    const itemDiv = targetElement.closest(".inventory-item");
     if (itemDiv) {
       currentContextitemId = itemDiv.dataset.id;
       contextMenu.style.display = "block";
@@ -59,29 +63,53 @@ document.addEventListener("DOMContentLoaded", () => {
     contextMenu.style.display = "none";
     currentContextitemId = null;
   }
-  function contextMenuTrigger(e, callback, delay = 500) {
-    let pressTimer;
-    const starPress = () => {
+  // function contextMenuTrigger(e, callback, delay = 500) {
+  //   let pressTimer;
+  //   const starPress = () => {
+  //     pressTimer = setTimeout(() => {
+  //       callback(e);
+  //       pressTimer = null;
+  //     }, delay);
+  //   };
+  //   const cancelPress = () => {
+  //     if (pressTimer) {
+  //       clearTimeout(pressTimer);
+  //       pressTimer = null;
+  //     }
+  //   };
+  //   e.addEventListener("mousedown", starPress);
+  //   e.addEventListener("mouseup", cancelPress);
+  //   e.addEventListener("mouseleave", cancelPress);
+  // }
+  // var griditem = document.querySelectorAll(".inventory-item");
+  // griditem.forEach((i) => {
+  //   contextMenuTrigger(i, (el) => {
+  //     console.log("long press detected;", el.id);
+  //     showContextMenu(i);
+  //   });
+  // });
+  function handlePressStart(e) {
+    if (e.type === "touchstart") {
+      isLongPress = false;
+      starX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+      startY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
       pressTimer = setTimeout(() => {
-        callback(e);
-        pressTimer = null;
-      }, delay);
-    };
-    const cancelPress = () => {
-      if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    };
-    e.addEventListener("mousedown", starPress);
-    e.addEventListener("mouseup", cancelPress);
-    e.addEventListener("mouseleave", cancelPress);
+        isLongPress = true;
+        showContextMenu(e, target);
+      }, longPressThreshold);
+    }
   }
-  var griditem = document.querySelectorAll(".inventory-item");
-  griditem.forEach((i) => {
-    contextMenuTrigger(i, (el) => {
-      console.log("long press detected;", el.id);
-      showContextMenu(i);
-    });
-  });
+  function handlePressEnd() {
+    clearTimeout(pressTimer);
+    if (isLongPress) {
+      pass;
+    }
+    isLongPress = false;
+  }
+  // event listners
+  inventoryGrid.addEventListener("contextlost", (e) =>
+    showContextMenu(e, e.target)
+  );
+  inventoryGrid.addEventListener("touchstart", handlePressStart);
+  inventoryGrid.addEventListener("touchend", handlePressEnd);
 });

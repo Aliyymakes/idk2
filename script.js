@@ -45,8 +45,13 @@ document.addEventListener("DOMContentLoaded", () => {
     inventory = inventory.filter((item) => item.id !== id);
     renderInventory(inventory);
   }
+  function disableScrolling() {
+    document.body.classList.add("no-sccroll");
+  }
+  function enableScrolling() {
+    document.body.classList.remove("no-scroll");
+  }
 
-  renderInventory(inventory);
   function showContextMenu(e, targetElement) {
     e.preventDefault();
     const itemDiv = targetElement.closest(".inventory-item");
@@ -55,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       contextMenu.style.display = "block";
       contextMenu.style.left = `${e.pageX + 5}px`;
       contextMenu.style.top = `${e.pageY + 5}px`;
+      disableScrolling();
     } else {
       hideContextMenu();
     }
@@ -62,32 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function hideContextMenu() {
     contextMenu.style.display = "none";
     currentContextitemId = null;
+    enableScrolling();
   }
-  // function contextMenuTrigger(e, callback, delay = 500) {
-  //   let pressTimer;
-  //   const starPress = () => {
-  //     pressTimer = setTimeout(() => {
-  //       callback(e);
-  //       pressTimer = null;
-  //     }, delay);
-  //   };
-  //   const cancelPress = () => {
-  //     if (pressTimer) {
-  //       clearTimeout(pressTimer);
-  //       pressTimer = null;
-  //     }
-  //   };
-  //   e.addEventListener("mousedown", starPress);
-  //   e.addEventListener("mouseup", cancelPress);
-  //   e.addEventListener("mouseleave", cancelPress);
-  // }
-  // var griditem = document.querySelectorAll(".inventory-item");
-  // griditem.forEach((i) => {
-  //   contextMenuTrigger(i, (el) => {
-  //     console.log("long press detected;", el.id);
-  //     showContextMenu(i);
-  //   });
-  // });
   function handlePressStart(e) {
     if (e.type === "touchstart") {
       isLongPress = false;
@@ -95,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       startY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
       pressTimer = setTimeout(() => {
         isLongPress = true;
-        showContextMenu(e, target);
+        showContextMenu(e, e.target);
       }, longPressThreshold);
     }
   }
@@ -107,9 +89,16 @@ document.addEventListener("DOMContentLoaded", () => {
     isLongPress = false;
   }
   // event listners
-  inventoryGrid.addEventListener("contextlost", (e) =>
+  inventoryGrid.addEventListener("contextmenu", (e) =>
     showContextMenu(e, e.target)
   );
   inventoryGrid.addEventListener("touchstart", handlePressStart);
   inventoryGrid.addEventListener("touchend", handlePressEnd);
+  inventoryGrid.addEventListener("touchcancel", handlePressEnd);
+  document.addEventListener("click", (e) => {
+    if (!contextMenu.contains(e.target)) {
+      hideContextMenu();
+    }
+  });
+  renderInventory(inventory);
 });

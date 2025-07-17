@@ -65,6 +65,9 @@ nav a:hover {
   padding: 0;
   box-sizing: border-box;
 }
+body.no-scroll {
+  overflow: hidden;
+}
 
 /*media queries*/
 /*laptop*/
@@ -84,6 +87,10 @@ nav a:hover {
 @media (max-width: 768px) {
   html {
     font-size: 55%;
+  }
+  .context-menu {
+    transform: scale(2);
+    transform-origin: top left;
   }
 }
 

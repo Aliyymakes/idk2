@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const contextMenu = document.getElementById("contextMenu");
   const editContextBtn = document.getElementById("editContextBtn");
   const deleteContextBtn = document.getElementById("deleteContextBtn");
+  const searchinput = document.getElementById("search-bar");
+  const searchButton = document.getElementById("search-i");
   const longPressThreshold = 700;
   let isLongPress = false;
   let pressTimer;
@@ -25,6 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
       inventoryGrid.appendChild(itemDiv);
     });
+  }
+  function searchinventory() {
+    const searchTerm = searchinput.ariaValueMax.trim().toLowerCase();
+    if (!searchTerm) {
+      renderInventory();
+      return;
+    }
+    const filtereditems = inventory.filter((item) =>
+      item.name.toLowerCase().includes(searchTerm)
+    );
+    renderInventory(filtereditems);
   }
   function editItem(id) {
     const item = inventory.find((item) => item.id === id);
@@ -46,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderInventory(inventory);
   }
   function disableScrolling() {
-    document.body.classList.add("no-sccroll");
+    document.body.classList.add("no-scroll");
   }
   function enableScrolling() {
     document.body.classList.remove("no-scroll");
@@ -89,6 +102,8 @@ document.addEventListener("DOMContentLoaded", () => {
     isLongPress = false;
   }
   // event listners
+  searchButton.addEventListener("click", searchinventory);
+  searchinput.addEventListener("change", searchinventory);
   inventoryGrid.addEventListener("contextmenu", (e) =>
     showContextMenu(e, e.target)
   );

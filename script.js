@@ -10,12 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const deleteContextBtn = document.getElementById("deleteContextBtn");
   const searchinput = document.getElementById("search-bar");
   const searchButton = document.getElementById("search-i");
+  const addbutton = document.getElementById("addd");
   const longPressThreshold = 700;
+  const SEARCH_DEBOUNCE_DELAY = 300;
   let isLongPress = false;
+  let searchTimeout;
   let pressTimer;
   let starX, startY;
   let currentContextitemId = null;
-  function renderInventory(itemsToRender) {
+  function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";
     itemsToRender.forEach((item) => {
       const itemDiv = document.createElement("div");
@@ -29,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   function searchinventory() {
-    const searchTerm = searchinput.ariaValueMax.trim().toLowerCase();
+    const searchTerm = searchinput.value.trim().toLowerCase();
     if (!searchTerm) {
       renderInventory();
       return;
@@ -39,25 +42,25 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     renderInventory(filtereditems);
   }
-  function editItem(id) {
-    const item = inventory.find((item) => item.id === id);
-    if (item) {
-      const newName = prompt("Enter new name:", item.name);
-      const newQuantity = prompt("Enter new quantity:", item.quantity);
-      const newCategory = prompt("Enter new category:", item.category);
-      if (newName && newQuantity && newCategory) {
-        item.name = newName;
-        item.quantity = parseInt(newQuantity);
-        item.category = newCategory;
-        renderInventory(inventory);
-      }
-    }
-  }
+  // function editItem(id) {
+  //   const item = inventory.find((item) => item.id === id);
+  //   if (item) {
+  //     const newName = prompt("Enter new name:", item.name);
+  //     const newQuantity = prompt("Enter new quantity:", item.quantity);
+  //     const newCategory = prompt("Enter new category:", item.category);
+  //     if (newName && newQuantity && newCategory) {
+  //       item.name = newName;
+  //       item.quantity = parseInt(newQuantity);
+  //       item.category = newCategory;
+  //       renderInventory(inventory);
+  //     }
+  //   }
+  // }
 
-  function deleteItem(id) {
-    inventory = inventory.filter((item) => item.id !== id);
-    renderInventory(inventory);
-  }
+  // function deleteItem(id) {
+  //   inventory = inventory.filter((item) => item.id !== id);
+  //   renderInventory(inventory);
+  // }
   function disableScrolling() {
     document.body.classList.add("no-scroll");
   }
@@ -96,16 +99,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function handlePressEnd() {
     clearTimeout(pressTimer);
-    if (isLongPress) {
-      pass;
-    }
     isLongPress = false;
+  }
+  async function handleContextAction(action) {
+    if (!currentContextitemId) return;
+    if (action === "delete") {
+      if (confirm("are you sure you want to delete this item?'")) {
+        inventory = inventory.filter((item) => item.id != currentContextitemId);
+        alert("item deleted succesfully!");
+        renderInventory();
+      }
+    }
+    hideContextMenu();
   }
   // event listners
   searchButton.addEventListener("click", searchinventory);
-  searchinput.addEventListener("change", searchinventory);
+  searchinput.addEventListener("input", () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      searchinventory();
+    }, SEARCH_DEBOUNCE_DELAY);
+  });
+  searchinput.addEventListener("keyup", (event) => {
+    if (event.key == "Enter") {
+      searchinventory();
+    } else if (searchinput.value.trim() === "") {
+      renderInventory();
+    }
+  });
   inventoryGrid.addEventListener("contextmenu", (e) =>
     showContextMenu(e, e.target)
+  );
+  deleteContextBtn.addEventListener("click", () =>
+    handleContextAction("delete")
   );
   inventoryGrid.addEventListener("touchstart", handlePressStart);
   inventoryGrid.addEventListener("touchend", handlePressEnd);
@@ -115,5 +141,5 @@ document.addEventListener("DOMContentLoaded", () => {
       hideContextMenu();
     }
   });
-  renderInventory(inventory);
+  renderInventory();
 });

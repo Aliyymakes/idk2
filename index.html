@@ -23,10 +23,18 @@
       <button id="editContextBtn">Edit item</button
       ><button id="deleteContextBtn">Delete item</button>
     </div>
+    <div id="addmenu">
+      <form action="">
+        <div class="form-group">
+          <label for="itemname">name</label>
+          <input type="text" id="itemname" required />
+        </div>
+      </form>
+    </div>
     <nav>
       <a href="#"><i data-feather="home"></i></a>
-      <a href="#"><i data-feather="plus-circle"></i></a>
-      <a href="#"><i data-feather="trash-2"></i></a>
+      <a href="#" id="addd"><i data-feather="plus-circle"></i></a>
+      <a href="#" id="trashh"><i data-feather="trash-2"></i></a>
     </nav>
     <script>
       feather.replace();

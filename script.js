@@ -11,8 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchinput = document.getElementById("search-bar");
   const searchButton = document.getElementById("search-i");
   const addbutton = document.getElementById("addd");
+  const trashbutton = document.getElementById("trashh");
   const longPressThreshold = 700;
   const SEARCH_DEBOUNCE_DELAY = 300;
+  const addmenu = document.getElementById("addmenu");
+  const addForm = document.getElementById("add-form");
   let isLongPress = false;
   let searchTimeout;
   let pressTimer;
@@ -61,6 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
   //   inventory = inventory.filter((item) => item.id !== id);
   //   renderInventory(inventory);
   // }
+  function showaddmenu(e) {
+    e.preventDefault();
+    addmenu.style.display = "flex";
+    addForm.reset();
+    disableScrolling();
+  }
+  function hideAddMenu() {
+    addmenu.style.display = "none";
+    enableScrolling();
+  }
+  function additem() {}
   function disableScrolling() {
     document.body.classList.add("no-scroll");
   }
@@ -136,9 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
   inventoryGrid.addEventListener("touchstart", handlePressStart);
   inventoryGrid.addEventListener("touchend", handlePressEnd);
   inventoryGrid.addEventListener("touchcancel", handlePressEnd);
+  addbutton.addEventListener("click", showaddmenu);
   document.addEventListener("click", (e) => {
     if (!contextMenu.contains(e.target)) {
       hideContextMenu();
+    }
+    if (!addmenu.contains(e.target)) {
+      hideAddMenu();
     }
   });
   renderInventory();

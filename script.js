@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const trashbutton = document.getElementById("trashh");
   const longPressThreshold = 700;
   const SEARCH_DEBOUNCE_DELAY = 300;
-  const addmenu = document.getElementById("addmenu");
+  const addModal = document.getElementById("modal-overlay");
   const addForm = document.getElementById("add-form");
   let isLongPress = false;
   let searchTimeout;
@@ -64,14 +64,14 @@ document.addEventListener("DOMContentLoaded", () => {
   //   inventory = inventory.filter((item) => item.id !== id);
   //   renderInventory(inventory);
   // }
-  function showaddmenu(e) {
-    e.preventDefault();
-    addmenu.style.display = "flex";
+  function showaddmenu() {
+    //e.preventDefault();
+    addModal.style.display = "flex";
     addForm.reset();
     disableScrolling();
   }
   function hideAddMenu() {
-    addmenu.style.display = "none";
+    addModal.style.display = "none";
     enableScrolling();
   }
   function additem() {}
@@ -150,13 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
   inventoryGrid.addEventListener("touchstart", handlePressStart);
   inventoryGrid.addEventListener("touchend", handlePressEnd);
   inventoryGrid.addEventListener("touchcancel", handlePressEnd);
-  addbutton.addEventListener("click", showaddmenu);
+  addbutton.addEventListener("click", () => {
+    console.log("testttt");
+    showaddmenu();
+  });
   document.addEventListener("click", (e) => {
     if (!contextMenu.contains(e.target)) {
       hideContextMenu();
-    }
-    if (!addmenu.contains(e.target)) {
-      hideAddMenu();
     }
   });
   renderInventory();

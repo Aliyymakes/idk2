@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // SEARCH INVENTORY
   const searchinput = document.getElementById("search-bar");
-  const searchButton = document.getElementById("search-i");
+  const searchButton = document.getElementById("search-btn");
   const SEARCH_DEBOUNCE_DELAY = 300;
   let searchTimeout;
   function searchinventory() {

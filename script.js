@@ -1,26 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // DATABASE
   let inventory = [
     { id: 1, name: "Apple", quantity: 10, category: "Fruit" },
     { id: 2, name: "Banana", quantity: 5, category: "Fruit" },
     { id: 3, name: "Carrot", quantity: 8, category: "Vegetable" },
   ];
+
+  // GENERAL: SCROLL
+  function disableScrolling() {
+    document.body.classList.add("no-scroll");
+  }
+  function enableScrolling() {
+    document.body.classList.remove("no-scroll");
+  }
+
+  // RENDER INVENTORY
   const inventoryGrid = document.getElementById("inventoryGrid");
-  const contextMenu = document.getElementById("contextMenu");
-  const editContextBtn = document.getElementById("editContextBtn");
-  const deleteContextBtn = document.getElementById("deleteContextBtn");
-  const searchinput = document.getElementById("search-bar");
-  const searchButton = document.getElementById("search-i");
-  const addbutton = document.getElementById("addd");
-  const trashbutton = document.getElementById("trashh");
-  const longPressThreshold = 700;
-  const SEARCH_DEBOUNCE_DELAY = 300;
-  const addModal = document.getElementById("modal-overlay");
-  const addForm = document.getElementById("add-form");
-  let isLongPress = false;
-  let searchTimeout;
-  let pressTimer;
-  let starX, startY;
-  let currentContextitemId = null;
   function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";
     itemsToRender.forEach((item) => {
@@ -34,53 +29,45 @@ document.addEventListener("DOMContentLoaded", () => {
       inventoryGrid.appendChild(itemDiv);
     });
   }
+
+  // SEARCH INVENTORY
+  const searchinput = document.getElementById("search-bar");
+  const searchButton = document.getElementById("search-btn");
+  const SEARCH_DEBOUNCE_DELAY = 300;
+  let searchTimeout;
   function searchinventory() {
     const searchTerm = searchinput.value.trim().toLowerCase();
     if (!searchTerm) {
       renderInventory();
       return;
     }
-    const filtereditems = inventory.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm)
-    );
+    const filtereditems = inventory.filter((item) => item.name.toLowerCase().includes(searchTerm));
     renderInventory(filtereditems);
   }
-  // function editItem(id) {
-  //   const item = inventory.find((item) => item.id === id);
-  //   if (item) {
-  //     const newName = prompt("Enter new name:", item.name);
-  //     const newQuantity = prompt("Enter new quantity:", item.quantity);
-  //     const newCategory = prompt("Enter new category:", item.category);
-  //     if (newName && newQuantity && newCategory) {
-  //       item.name = newName;
-  //       item.quantity = parseInt(newQuantity);
-  //       item.category = newCategory;
-  //       renderInventory(inventory);
-  //     }
-  //   }
-  // }
+  searchButton.addEventListener("click", searchinventory);
+  searchinput.addEventListener("input", () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      searchinventory();
+    }, SEARCH_DEBOUNCE_DELAY);
+  });
+  searchinput.addEventListener("keyup", (event) => {
+    if (event.key == "Enter") {
+      searchinventory();
+    } else if (searchinput.value.trim() === "") {
+      renderInventory();
+    }
+  });
 
-  // function deleteItem(id) {
-  //   inventory = inventory.filter((item) => item.id !== id);
-  //   renderInventory(inventory);
-  // }
-  function showaddmenu() {
-    //e.preventDefault();
-    addModal.style.display = "flex";
-    addForm.reset();
-    disableScrolling();
-  }
-  function hideAddMenu() {
-    addModal.style.display = "none";
-    enableScrolling();
-  }
-  function additem() {}
-  function disableScrolling() {
-    document.body.classList.add("no-scroll");
-  }
-  function enableScrolling() {
-    document.body.classList.remove("no-scroll");
-  }
+  // CONTEXT MENU
+  const contextMenu = document.getElementById("contextMenu");
+  const longPressThreshold = 700;
+  let isLongPress = false;
+  let pressTimer;
+  let starX, startY;
+  let currentContextitemId = null;
+  const editContextBtn = document.getElementById("editContextBtn");
+  const deleteContextBtn = document.getElementById("deleteContextBtn");
 
   function showContextMenu(e, targetElement) {
     e.preventDefault();
@@ -115,6 +102,18 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(pressTimer);
     isLongPress = false;
   }
+  inventoryGrid.addEventListener("contextmenu", (e) => showContextMenu(e, e.target));
+  inventoryGrid.addEventListener("touchstart", handlePressStart);
+  inventoryGrid.addEventListener("touchend", handlePressEnd);
+  inventoryGrid.addEventListener("touchcancel", handlePressEnd);
+  document.addEventListener("click", (e) => {
+    if (!contextMenu.contains(e.target)) {
+      hideContextMenu();
+    }
+  });
+
+  // DELETE
+  const trashbutton = document.getElementById("trashh");
   async function handleContextAction(action) {
     if (!currentContextitemId) return;
     if (action === "delete") {
@@ -126,38 +125,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     hideContextMenu();
   }
-  // event listners
-  searchButton.addEventListener("click", searchinventory);
-  searchinput.addEventListener("input", () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      searchinventory();
-    }, SEARCH_DEBOUNCE_DELAY);
-  });
-  searchinput.addEventListener("keyup", (event) => {
-    if (event.key == "Enter") {
-      searchinventory();
-    } else if (searchinput.value.trim() === "") {
-      renderInventory();
-    }
-  });
-  inventoryGrid.addEventListener("contextmenu", (e) =>
-    showContextMenu(e, e.target)
-  );
-  deleteContextBtn.addEventListener("click", () =>
-    handleContextAction("delete")
-  );
-  inventoryGrid.addEventListener("touchstart", handlePressStart);
-  inventoryGrid.addEventListener("touchend", handlePressEnd);
-  inventoryGrid.addEventListener("touchcancel", handlePressEnd);
+  deleteContextBtn.addEventListener("click", () => handleContextAction("delete"));
+
+  // ADD MODAL MENU
+  const addbutton = document.getElementById("addd");
+  const addModal = document.getElementById("modal-overlay");
+  const addForm = document.getElementById("add-form");
+
+  function showaddmenu() {
+    addModal.style.display = "flex";
+    addForm.reset();
+    disableScrolling();
+  }
+  function hideAddMenu() {
+    addModal.style.display = "none";
+    enableScrolling();
+  }
+  function additem() {}
   addbutton.addEventListener("click", () => {
     console.log("testttt");
     showaddmenu();
   });
-  document.addEventListener("click", (e) => {
-    if (!contextMenu.contains(e.target)) {
-      hideContextMenu();
-    }
-  });
+
+  // LOAD THE INVENTORY
   renderInventory();
 });

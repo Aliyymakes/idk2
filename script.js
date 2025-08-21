@@ -41,7 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
       renderInventory();
       return;
     }
-    const filtereditems = inventory.filter((item) => item.name.toLowerCase().includes(searchTerm));
+    const filtereditems = inventory.filter((item) =>
+      item.name.toLowerCase().includes(searchTerm)
+    );
     renderInventory(filtereditems);
   }
   searchButton.addEventListener("click", searchinventory);
@@ -102,7 +104,9 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(pressTimer);
     isLongPress = false;
   }
-  inventoryGrid.addEventListener("contextmenu", (e) => showContextMenu(e, e.target));
+  inventoryGrid.addEventListener("contextmenu", (e) =>
+    showContextMenu(e, e.target)
+  );
   inventoryGrid.addEventListener("touchstart", handlePressStart);
   inventoryGrid.addEventListener("touchend", handlePressEnd);
   inventoryGrid.addEventListener("touchcancel", handlePressEnd);
@@ -125,9 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     hideContextMenu();
   }
-  deleteContextBtn.addEventListener("click", () => handleContextAction("delete"));
+  deleteContextBtn.addEventListener("click", () =>
+    handleContextAction("delete")
+  );
 
   // ADD MODAL MENU
+  const cancelbutton = document.getElementById("cancelBtn");
   const addbutton = document.getElementById("addd");
   const addModal = document.getElementById("modal-overlay");
   const addForm = document.getElementById("add-form");
@@ -145,6 +152,12 @@ document.addEventListener("DOMContentLoaded", () => {
   addbutton.addEventListener("click", () => {
     console.log("testttt");
     showaddmenu();
+  });
+  cancelBtn.addEventListener("click", hideAddMenu);
+  addModal.addEventListener("click", (e) => {
+    if (!addForm.contains(e.target)) {
+      hideAddMenu();
+    }
   });
 
   // LOAD THE INVENTORY

@@ -13,7 +13,11 @@
   </head>
   <body>
     <header>
-      <input type="text" id="search-bar" />
+      <input
+        type="text"
+        id="search-bar"
+        placeholder="Search items or containers..."
+      />
       <a href="#" id="search-btn"><i data-feather="search"></i></a>
     </header>
     <main>
@@ -30,12 +34,55 @@
     <!-- parts that are not visible on load -->
 
     <!-- context menu -->
-    <div id="contextMenu" class="context-menu" style="display: none"><button id="editContextBtn">Edit item</button><button id="deleteContextBtn">Delete item</button></div>
+    <div id="contextMenu" class="context-menu" style="display: none">
+      <button id="editContextBtn">Edit item</button
+      ><button id="deleteContextBtn">Delete item</button>
+    </div>
 
     <!-- modal -->
     <div id="modal-overlay" style="display: none">
-      <div id="addmenu">
+      <div
+        id="addmenu"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
+        <h2 id="modalTitle">Add item</h2>
+
         <form id="add-form">
+          <div class="form-group">
+            <label style="min-width: 80px">Type</label>
+            <div class="radio-row">
+              <label
+                ><input type="radio" name="type" value="item" checked />
+                Item</label
+              >
+              <label
+                ><input type="radio" name="type" value="container" />
+                Container</label
+              >
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="min-width: 80px">Display</label>
+            <select id="displaySelect">
+              <option value="placeholder">Placeholder Image</option>
+              <option value="upload">Upload Image</option>
+              <option value="icon">Feather Icon</option>
+            </select>
+            <input
+              type="file"
+              id="imageUpload"
+              accept="image/*"
+              style="display: none"
+            />
+            <input
+              type="text"
+              id="iconName"
+              placeholder="feather icon name (e.g. box)"
+              style="display: none"
+            />
+          </div>
           <div class="form-group">
             <label for="itemname">name</label>
             <input type="text" id="itemname" required />
@@ -46,10 +93,19 @@
           </div>
           <div class="form-group">
             <label for="itemcategory">category</label>
+            <select id="categorySelect"></select>
+            <input
+              type="text"
+              id="categoryInput"
+              placeholder="add new category"
+              style="display: none"
+            />
             <input type="text" id="itemcategory" required />
           </div>
-          <button id="addsum" type="submit">submit?</button>
-          <p>no cancle button, no budget. just click outside this window pls</p>
+          <div class="btn-row">
+            <button type="button" class="ghost" id="cancelBtn">Cancel</button>
+            <button type="submit" class="primary" id="addsum">Save</button>
+          </div>
         </form>
       </div>
     </div>

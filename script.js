@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // RENDER INVENTORY
+  let selectedIds = new Set();
   const inventoryGrid = document.getElementById("inventoryGrid");
   function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";

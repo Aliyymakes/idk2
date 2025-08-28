@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // RENDER INVENTORY
   let selectedIds = new Set();
+  const selectedDiv = null;
   const inventoryGrid = document.getElementById("inventoryGrid");
   function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("inventory-item");
       itemDiv.dataset.id = item.id;
+      if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
       itemDiv.innerHTML = `
                 <img src="placeholder1.png" alt="thumbnail">
                 <h3>${item.name}</h3>
@@ -30,6 +32,24 @@ document.addEventListener("DOMContentLoaded", () => {
       inventoryGrid.appendChild(itemDiv);
     });
   }
+  // SEELCT
+  function toggleSelect(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+  }
+  inventoryGrid.addEventListener("click", (e) => {
+    selectedDiv = e.target.closest(".inventory-item");
+    if (selectedDiv) {
+      selectedDiv.classList.add("selected");
+      selectedIds = itemDiv.dataset.id;
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (selectedIds && !selectedDiv.contains(e.target)) {
+      selectedIds.clear();
+      selectedDiv = null;
+    }
+  });
 
   // SEARCH INVENTORY
   const searchinput = document.getElementById("search-bar");

@@ -37,11 +37,13 @@ header input[type="text"] {
 
 /* --- main: the grid --- */
 main {
-  padding: 96px 20px 120px;
+  /*padding: 96px 20px 120px;*/
+  padding: 1rem;
   margin-top: 4rem; /* to avoid overlap with header */
   background-color: #000000;
-  height: 100vh;
+  /*height: 100vh;*/
 }
+
 /*inventory display*/
 .inventory-grid {
   display: grid;
@@ -58,7 +60,7 @@ main {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /*align-items: center;*/
   color: wheat;
   z-index: 1;
   font-size: 2.1em;
@@ -70,11 +72,14 @@ main {
 .inventory-item img {
   user-select: none;
 }
-/* .inventory-item.selected {
+.inventory-item:hover {
+  transform: translateY(-5px);
+}
+.inventory-item.selected {
   box-shadow: 0 12px 30px rgba(14, 165, 233, 0.12);
   border: 1px solid rgba(14, 165, 233, 0.2);
-  transform: translateY(-6px);
-} */
+  background-color: rgba(207, 206, 206, 0.2);
+}
 
 /* --- nav: home, add, delete menu --- */
 nav {

@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // RENDER INVENTORY
   let selectedIds = new Set();
-  const selectedDiv = null;
+  let selectedDiv = null;
   const inventoryGrid = document.getElementById("inventoryGrid");
   function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";
@@ -32,23 +32,26 @@ document.addEventListener("DOMContentLoaded", () => {
       inventoryGrid.appendChild(itemDiv);
     });
   }
-  // SEELCT
+  // SELeCT
   function toggleSelect(id) {
     if (selectedIds.has(id)) selectedIds.delete(id);
     else selectedIds.add(id);
   }
-  inventoryGrid.addEventListener("click", (e) => {
-    selectedDiv = e.target.closest(".inventory-item");
+  function selectionsmtidk(ee, targetElement) {
+    selectedDiv = targetElement.closest(".inventory-item");
     if (selectedDiv) {
       selectedDiv.classList.add("selected");
-      selectedIds = itemDiv.dataset.id;
-    }
-  });
-  document.addEventListener("click", (e) => {
-    if (selectedIds && !selectedDiv.contains(e.target)) {
-      selectedIds.clear();
+      selectedIds = selectedDiv.dataset.id;
+    } else if (!inventoryGrid.contains(targetElement)) {
+      //selectedIds =
       selectedDiv = null;
     }
+  }
+  inventoryGrid.addEventListener("click", (e) => {
+    selectionsmtidk(e, e.target);
+  });
+  document.addEventListener("click", (e) => {
+    selectionsmtidk(e, e.target);
   });
 
   // SEARCH INVENTORY

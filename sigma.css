@@ -16,7 +16,7 @@ body i {
 /* ---- header: search bar ---- */
 header {
   padding: 1rem;
-  background-color: #1b7ad8;
+  background-color: rgb(27, 122, 216);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,8 +76,8 @@ main {
   transform: translateY(-5px);
 }
 .inventory-item.selected {
-  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.12);
-  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 12px 30px rgb(27, 122, 216);
+  border: 1px solid rgba(56, 56, 56, 0.92);
   background-color: rgba(207, 206, 206, 0.2);
 }
 

@@ -24,26 +24,40 @@ document.addEventListener("DOMContentLoaded", () => {
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("inventory-item");
       itemDiv.dataset.id = item.id;
-      if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
+      // if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
       itemDiv.innerHTML = `
                 <img src="placeholder1.png" alt="thumbnail">
                 <h3>${item.name}</h3>
             `;
       inventoryGrid.appendChild(itemDiv);
     });
+    updateSelection();
   }
   // SELeCT
+  const trashbutton = document.getElementById("trashh");
   function toggleSelect(id) {
     if (selectedIds.has(id)) selectedIds.delete(id);
     else selectedIds.add(id);
+  }
+  function updateSelection() {
+    const si = selectedIds.size;
+    console.log(si);
+    if (si > 0) trashbutton.style.display = "inline-flex";
+    else trashbutton.style.display = "none";
+    inventoryGrid.querySelectorAll(".inventory-item").forEach((item) => {
+      const id = Number(item.dataset.id);
+      if (selectedIds.has(id)) item.classList.add("selected");
+      else item.classList.remove("selected");
+    });
   }
   function selectionsmtidk(ee, targetElement) {
     selectedDiv = targetElement.closest(".inventory-item");
     if (selectedDiv) {
       selectedDiv.classList.add("selected");
-      selectedIds = selectedDiv.dataset.id;
+      selectedIds.add(selectedDiv.dataset.id);
     } else if (!inventoryGrid.contains(targetElement)) {
-      //selectedIds =
+      updateSelection();
+      selectedIds.clear();
       selectedDiv = null;
     }
   }
@@ -141,7 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // DELETE
-  const trashbutton = document.getElementById("trashh");
   async function handleContextAction(action) {
     if (!currentContextitemId) return;
     if (action === "delete") {

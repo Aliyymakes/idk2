@@ -41,25 +41,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function updateSelection() {
     const si = selectedIds.size;
-    console.log(si);
+    console.log("size:" + si);
     if (si > 0) trashbutton.style.display = "inline-flex";
     else trashbutton.style.display = "none";
-    inventoryGrid.querySelectorAll(".inventory-item").forEach((item) => {
-      const id = Number(item.dataset.id);
-      if (selectedIds.has(id)) item.classList.add("selected");
-      else item.classList.remove("selected");
-    });
   }
   function selectionsmtidk(ee, targetElement) {
     selectedDiv = targetElement.closest(".inventory-item");
     if (selectedDiv) {
       selectedDiv.classList.add("selected");
-      selectedIds.add(selectedDiv.dataset.id);
+      selectedIds.add(Number(selectedDiv.dataset.id));
     } else if (!inventoryGrid.contains(targetElement)) {
-      updateSelection();
+      inventoryGrid.querySelectorAll(".inventory-item").forEach((item) => {
+        const id = Number(item.dataset.id);
+        if (selectedIds.has(id)) item.classList.remove("selected");
+        toggleSelect(id);
+      });
       selectedIds.clear();
       selectedDiv = null;
     }
+    console.log("selectedIds: " + selectedIds);
+    updateSelection();
   }
   inventoryGrid.addEventListener("click", (e) => {
     selectionsmtidk(e, e.target);

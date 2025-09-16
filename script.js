@@ -33,12 +33,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     updateSelection();
   }
+
   // SELeCT
   const trashbutton = document.getElementById("trashh");
   function toggleSelect(id) {
     if (selectedIds.has(id)) selectedIds.delete(id);
     else selectedIds.add(id);
   }
+  //another delet
+  function deleteitems() {
+    selectedIds.forEach((id) => {
+      inventory = inventory.filter((item) => item.id != id);
+      selectedIds.delete(id);
+    });
+    renderInventory();
+  }
+  trashbutton.addEventListener("click", () => {
+    deleteitems();
+  });
   function updateSelection() {
     const si = selectedIds.size;
     console.log("size:" + si);
@@ -171,6 +183,23 @@ document.addEventListener("DOMContentLoaded", () => {
     handleContextAction("delete")
   );
 
+  // ADD ITEM
+  const itemCatSelect = document.getElementById("categorySelect");
+  const categoryinput = decument.getElementByid("categoryinput");
+
+  function populateCategorySelect() {
+    itemCatSelect.innerHTML = "";
+    categories.forEach((cat) => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      itemCatSelect.appendChild(opt);
+    });
+    const addOpt = document.createElement("option");
+    addOpt.value = "__add_new";
+    addOpt.textContent = "Add new...";
+    itemCatSelect.appendChild(addOpt);
+  }
   // ADD MODAL MENU
   const cancelbutton = document.getElementById("cancelBtn");
   const addbutton = document.getElementById("addd");
@@ -181,6 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
     addModal.style.display = "flex";
     addForm.reset();
     disableScrolling();
+    populateCategorySelect();
   }
   function hideAddMenu() {
     addModal.style.display = "none";

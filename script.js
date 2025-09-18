@@ -16,8 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // RENDER INVENTORY
   let selectedIds = new Set();
+  console.log(selectedIds.size);
   let selectedDiv = null;
   const inventoryGrid = document.getElementById("inventoryGrid");
+
   function renderInventory(itemsToRender = inventory) {
     inventoryGrid.innerHTML = "";
     itemsToRender.forEach((item) => {
@@ -51,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   trashbutton.addEventListener("click", () => {
     deleteitems();
   });
-  function updateSelection() {
+  async function updateSelection() {
     const si = selectedIds.size;
     console.log("size:" + si);
     if (si > 0) trashbutton.style.display = "inline-flex";
@@ -184,22 +186,42 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   // ADD ITEM
-  const itemCatSelect = document.getElementById("categorySelect");
-  const categoryinput = decument.getElementByid("categoryinput");
+  const suggestionsBox = document.getElementById("suggestions");
+  const categoryinput = document.getElementById("categoryInput");
 
-  function populateCategorySelect() {
-    itemCatSelect.innerHTML = "";
-    categories.forEach((cat) => {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      itemCatSelect.appendChild(opt);
+  let categories = ["apa", "aja", "boleh"];
+
+  function showSuggestions(value) {
+    suggestionsBox.innerHTML = "";
+    if (!value) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    const matches = categories.filter((cat) =>
+      cat.toLowerCase().startsWith(value.toLowerCase())
+    );
+
+    if (matches.length === 0) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+    matches.forEach((cat) => {
+      const div = document.createElement("div");
+      div.textContent = cat;
+      div.classList.add("suggestion");
+      div.addEventListener("click", () => {
+        categoryinput.value = cat;
+        suggestionsBox.style.display = "none";
+      });
+      suggestionsBox.appendChild(div);
     });
-    const addOpt = document.createElement("option");
-    addOpt.value = "__add_new";
-    addOpt.textContent = "Add new...";
-    itemCatSelect.appendChild(addOpt);
+    suggestionsBox.style.display = "block";
   }
+  categoryinput.addEventListener("input", () => {
+    showSuggestions(categoryinput.value.trim());
+  });
+
   // ADD MODAL MENU
   const cancelbutton = document.getElementById("cancelBtn");
   const addbutton = document.getElementById("addd");

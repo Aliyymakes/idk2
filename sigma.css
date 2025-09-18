@@ -211,6 +211,27 @@ button.ghost {
   cursor: pointer;
 }
 
+/* category */
+.catWrapper {
+  position: relative;
+  width: 250px;
+}
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.suggestion {
+  padding: 6px;
+}
+
 /*media queries*/
 /*laptop*/
 @media (max-width: 1366px) {

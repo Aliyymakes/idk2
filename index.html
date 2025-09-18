@@ -93,14 +93,16 @@
           </div>
           <div class="form-group">
             <label for="itemcategory">category</label>
-            <select id="categorySelect"></select>
-            <input
-              type="text"
-              id="categoryInput"
-              placeholder="add new category"
-              style="display: none"
-            />
-            <input type="text" id="itemcategory" required />
+            <div class="catWrapper">
+              <input
+                type="text"
+                id="categoryInput"
+                placeholder="add new category"
+                style="display: none"
+                required
+              />
+              <div class="suggestions"></div>
+            </div>
           </div>
           <div class="btn-row">
             <button type="button" class="ghost" id="cancelBtn">Cancel</button>

@@ -6,6 +6,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: 3, name: "Carrot", quantity: 8, category: "Vegetable" },
   ];
 
+  function categorySet(source = inventory) {
+    let categories = new Set();
+    source.forEach((item) => {
+      categories.add(item.category);
+    });
+    return categories;
+  }
+
   // GENERAL: SCROLL
   function disableScrolling() {
     document.body.classList.add("no-scroll");
@@ -16,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // RENDER INVENTORY
   let selectedIds = new Set();
-  console.log(selectedIds.size);
   let selectedDiv = null;
   const inventoryGrid = document.getElementById("inventoryGrid");
 
@@ -73,7 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedIds.clear();
       selectedDiv = null;
     }
-    console.log("selectedIds: " + selectedIds);
     updateSelection();
   }
   inventoryGrid.addEventListener("click", (e) => {
@@ -187,9 +193,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ADD ITEM
   const suggestionsBox = document.getElementById("suggestions");
-  const categoryinput = document.getElementById("categoryInput");
+  const categoryinput = document.getElementById("itemcategory");
 
-  let categories = ["apa", "aja", "boleh"];
+  let categories = categorySet();
 
   function showSuggestions(value) {
     suggestionsBox.innerHTML = "";
@@ -198,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const matches = categories.filter((cat) =>
+    const matches = [...categories].filter((cat) =>
       cat.toLowerCase().startsWith(value.toLowerCase())
     );
 
@@ -232,24 +238,62 @@ document.addEventListener("DOMContentLoaded", () => {
     addModal.style.display = "flex";
     addForm.reset();
     disableScrolling();
-    populateCategorySelect();
   }
   function hideAddMenu() {
     addModal.style.display = "none";
     enableScrolling();
   }
-  function additem() {}
   addbutton.addEventListener("click", () => {
-    console.log("testttt");
     showaddmenu();
   });
-  cancelBtn.addEventListener("click", hideAddMenu);
+  cancelbutton.addEventListener("click", hideAddMenu);
   addModal.addEventListener("click", (e) => {
     if (!addForm.contains(e.target)) {
       hideAddMenu();
     }
   });
 
+  // ADD ITEM REAL
+
+  let nextId =
+    inventory.length > 0
+      ? Math.max(...inventory.map((item) => item.id)) + 1
+      : 1;
+  const modalTitle = document.getElementById("modalTitle");
+  const displaySelect = document.getElementById("displaySelect");
+  const imageUpload = document.getElementById("imageUpload");
+  const iconName = document.getElementById("iconName");
+  const typeRadios = Array.from(
+    document.querySelectorAll('input[name="type"]')
+  );
+  const itemNameInput = document.getElementById("itemname");
+  const itemQuantityInput = document.getElementById("itemquantity");
+  const quantityRow = document.getElementById("quantityRow");
+  const categoryRow = document.getElementById("categoryRow");
+
+  function additem() {
+    const name = itemNameInput.value.trim();
+    const quantity = itemQuantityInput.value.trim();
+    const category = categoryinput.value.trim();
+
+    if (!name || !category || isNaN(quantity) || quantity < 1) {
+      alert("Please fill all the required fields with walid data.");
+      return;
+    }
+
+    const newItem = {
+      id: nextId,
+      name: name,
+      quantity: quantity,
+      category: category,
+    };
+    inventory.push(newItem);
+    alert("Item added successfully");
+    addForm.reset();
+    hideAddMenu();
+    renderInventory();
+  }
+  addForm.addEventListener("submit", additem);
   // LOAD THE INVENTORY
   renderInventory();
 });

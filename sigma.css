@@ -215,6 +215,7 @@ button.ghost {
 .catWrapper {
   position: relative;
   width: 250px;
+  margin: 10px;
 }
 .suggestions {
   position: absolute;
@@ -226,10 +227,15 @@ button.ghost {
   overflow-y: auto;
   z-index: 1000;
   display: none;
+  max-height: 150px;
+  display: none;
 }
 
 .suggestion {
   padding: 6px;
+}
+.suggestion:hover {
+  background-color: #ccc;
 }
 
 /*media queries*/

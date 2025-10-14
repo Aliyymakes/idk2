@@ -1,11 +1,48 @@
 document.addEventListener("DOMContentLoaded", () => {
   // DATABASE
-  let inventory = [
-    { id: 1, name: "Apple", quantity: 10, category: "Fruit" },
-    { id: 2, name: "Banana", quantity: 5, category: "Fruit" },
-    { id: 3, name: "Carrot", quantity: 8, category: "Vegetable" },
-  ];
-
+  const STORAGE_KEY = "keyFlowinventory";
+  let inventory = loadinventoryFromLocalStorage();
+  function saveinventoryToLocalStorage() {
+    localStorage.setitem(STORAGE_KEY, JSON.stringify(inventory));
+  }
+  function loadinventoryFromLocalStorage() {
+    const storedInventory = localStorage.getItem(STORAGE_KEY);
+    if (storedInventory) {
+      try {
+        const parsed = JSON.parse(storedInventory);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error("Error parsing inventory from localStorage:", e);
+        return [];
+      }
+    }
+    return [
+      { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
+      { id: 2, type: "item", name: "Banana", quantity: 5, category: "Fruit" },
+      {
+        id: 3,
+        type: "item",
+        name: "Carrot",
+        quantity: 8,
+        category: "Vegetable",
+      },
+      {
+        id: 4,
+        type: "folder",
+        name: "idk",
+        children: [
+          {
+            id: 5,
+            type: "item",
+            name: "wirelless muse",
+            quantity: -2,
+            category: "cat",
+          },
+        ],
+      },
+    ];
+  }
+  let currentFolderid = null; // null repersent root level
   function categorySet(source = inventory) {
     let categories = new Set();
     source.forEach((item) => {
@@ -33,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("inventory-item");
       itemDiv.dataset.id = item.id;
+      itemDiv.dataset.type = item.type;
       // if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
       itemDiv.innerHTML = `
                 <img src="placeholder1.png" alt="thumbnail">
@@ -294,6 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderInventory();
   }
   addForm.addEventListener("submit", additem);
+  const breadvrumbContainer = document.getElementById("breadcrumb");
   // LOAD THE INVENTORY
   renderInventory();
 });

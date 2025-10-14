@@ -210,7 +210,19 @@ button.ghost {
   border: 1px solid #e6eef6;
   cursor: pointer;
 }
-
+.breadcrumb-link {
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0 2px;
+}
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+.breadcrumb-current {
+  font-weight: bold;
+  color: yellow;
+}
 /* category */
 .catWrapper {
   position: relative;

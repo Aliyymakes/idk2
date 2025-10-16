@@ -72,10 +72,17 @@ document.addEventListener("DOMContentLoaded", () => {
       itemDiv.dataset.id = item.id;
       itemDiv.dataset.type = item.type;
       // if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
-      itemDiv.innerHTML = `
-                <img src="placeholder1.png" alt="thumbnail">
+      if (item.type === "folder") {
+        itemDiv.innerHTML = `
+                <img src="folder.svg" alt="thumbnail">
                 <h3>${item.name}</h3>
             `;
+      } else {
+        itemDiv.innerHTML = `
+                <img src="image.svg" alt="thumbnail">
+                <h3>${item.name}</h3>
+            `;
+      }
       inventoryGrid.appendChild(itemDiv);
     });
     updateSelection();
@@ -333,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   addForm.addEventListener("submit", additem);
   const breadvrumbContainer = document.getElementById("breadcrumb");
+  let breadcrumb = ["Home"];
   // LOAD THE INVENTORY
   renderInventory();
 });

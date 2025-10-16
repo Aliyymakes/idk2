@@ -1,6 +1,6 @@
 /* Basic Reset & Body Styling  */
 body {
-  background-color: #000000;
+  background-color: #ffffff;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -40,7 +40,7 @@ main {
   /*padding: 96px 20px 120px;*/
   padding: 1rem;
   margin-top: 4rem; /* to avoid overlap with header */
-  background-color: #000000;
+  background-color: #ffffff;
   /*height: 100vh;*/
 }
 
@@ -61,7 +61,7 @@ main {
   display: flex;
   flex-direction: column;
   /*align-items: center;*/
-  color: wheat;
+  color: rgb(1, 1, 1);
   z-index: 1;
   font-size: 2.1em;
   justify-content: space-between;
@@ -76,7 +76,7 @@ main {
   transform: translateY(-5px);
 }
 .inventory-item.selected {
-  box-shadow: 0 12px 30px rgb(27, 122, 216);
+  box-shadow: 0 12px 30px rgb(68, 70, 71);
   border: 1px solid rgba(56, 56, 56, 0.92);
   background-color: rgba(207, 206, 206, 0.2);
 }

@@ -59,6 +59,48 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("no-scroll");
   }
 
+  // BREADCRUMBS
+  const breadcrumbContainer = document.getElementById("breadcrumb");
+  let currentPath = [];
+  function openFolder(folder) {
+    currentPath.push(folder);
+    render();
+  }
+
+  function navigateTo(index) {
+    if (index === -1) {
+      currentPath = [];
+    } else {
+      currentPath = currentPath.slice(0, index + 1);
+    }
+    render();
+  }
+  function render() {
+    renderInventory();
+    renderBreadcrumb();
+  }
+  function renderBreadcrumb() {
+    breadcrumbContainer.innerHTML = "";
+
+    const homeee = document.createElement("button");
+    homeee.className =
+      "breadcrumb-item" + (currentPath.length === 0 ? " active" : "");
+    homeee.innerHTML = "Home";
+    homeee.onclick = () => navigateTo(-1);
+    breadcrumbContainer.appendChild(homeee);
+
+    currentPath.forEach((folder, index) => {
+      if (index > 0) {
+        const itemmms = document.createElement("button");
+        itemmms.className =
+          "breadcrumb-item" + (currentPath.length === 0 ? " active" : "");
+        itemmms.innerHTML = folder.name;
+        itemmms.onclick = () => navigateTo(-1);
+        breadcrumbContainer.appendChild(itemmms);
+      }
+    });
+  }
+
   // RENDER INVENTORY
   let selectedIds = new Set();
   let selectedDiv = null;
@@ -77,11 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="folder.svg" alt="thumbnail">
                 <h3>${item.name}</h3>
             `;
+        itemDiv.onclick = () => openFolder(item.name);
       } else {
         itemDiv.innerHTML = `
                 <img src="image.svg" alt="thumbnail">
                 <h3>${item.name}</h3>
             `;
+        itemDiv.onclick = () => selectionsmtidk(itemDiv);
       }
       inventoryGrid.appendChild(itemDiv);
     });
@@ -107,11 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   async function updateSelection() {
     const si = selectedIds.size;
-    console.log("size:" + si);
     if (si > 0) trashbutton.style.display = "inline-flex";
     else trashbutton.style.display = "none";
   }
-  function selectionsmtidk(ee, targetElement) {
+  function selectionsmtidk(targetElement) {
     selectedDiv = targetElement.closest(".inventory-item");
     if (selectedDiv) {
       selectedDiv.classList.add("selected");
@@ -127,11 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateSelection();
   }
-  inventoryGrid.addEventListener("click", (e) => {
-    selectionsmtidk(e, e.target);
-  });
   document.addEventListener("click", (e) => {
-    selectionsmtidk(e, e.target);
+    selectionsmtidk(e.target);
   });
 
   // SEARCH INVENTORY
@@ -339,8 +379,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderInventory();
   }
   addForm.addEventListener("submit", additem);
-  const breadvrumbContainer = document.getElementById("breadcrumb");
-  let breadcrumb = ["Home"];
-  // LOAD THE INVENTORY
-  renderInventory();
+
+  render();
 });

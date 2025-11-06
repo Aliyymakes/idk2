@@ -1,48 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
   // DATABASE
   const STORAGE_KEY = "keyFlowinventory";
-  let inventory = loadinventoryFromLocalStorage();
   function saveinventoryToLocalStorage() {
     localStorage.setitem(STORAGE_KEY, JSON.stringify(inventory));
   }
-  function loadinventoryFromLocalStorage() {
-    const storedInventory = localStorage.getItem(STORAGE_KEY);
-    if (storedInventory) {
-      try {
-        const parsed = JSON.parse(storedInventory);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        console.error("Error parsing inventory from localStorage:", e);
-        return [];
-      }
-    }
-    return [
-      { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
-      { id: 2, type: "item", name: "Banana", quantity: 5, category: "Fruit" },
-      {
-        id: 3,
-        type: "item",
-        name: "Carrot",
-        quantity: 8,
-        category: "Vegetable",
-      },
-      {
-        id: 4,
-        type: "folder",
-        name: "idk",
-        children: [
-          {
-            id: 5,
-            type: "item",
-            name: "wirelless muse",
-            quantity: -2,
-            category: "cat",
-          },
-        ],
-      },
-    ];
-  }
-  let currentFolderid = null; // null repersent root level
+  let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+    { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
+    { id: 2, type: "item", name: "Banana", quantity: 5, category: "Fruit" },
+    {
+      id: 3,
+      type: "item",
+      name: "Carrot",
+      quantity: 8,
+      category: "Vegetable",
+    },
+    {
+      id: 4,
+      type: "folder",
+      name: "idk",
+      children: [
+        {
+          id: 5,
+          type: "item",
+          name: "wirelless muse",
+          quantity: -2,
+          category: "cat",
+        },
+      ],
+    },
+  ];
+
   function categorySet(source = inventory) {
     let categories = new Set();
     source.forEach((item) => {
@@ -62,6 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // BREADCRUMBS
   const breadcrumbContainer = document.getElementById("breadcrumb");
   let currentPath = [];
+  function getCurrentitems() {
+    if (currentPath.length === 0) {
+      return inventory;
+    } else {
+      const currentFolder = currentPath[currentPath.length - 1];
+
+      console.log(currentFolder);
+
+      return currentFolder.children || [];
+    }
+  }
   function openFolder(folder) {
     currentPath.push(folder);
     render();
@@ -93,9 +91,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index > 0) {
         const itemmms = document.createElement("button");
         itemmms.className =
-          "breadcrumb-item" + (currentPath.length === 0 ? " active" : "");
+          "breadcrumb-item" +
+          (index === currentPath.length - 1 ? " active" : "");
+        console.log(folder.name);
         itemmms.innerHTML = folder.name;
-        itemmms.onclick = () => navigateTo(-1);
+        itemmms.onclick = () => navigateTo(index);
         breadcrumbContainer.appendChild(itemmms);
       }
     });
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedDiv = null;
   const inventoryGrid = document.getElementById("inventoryGrid");
 
-  function renderInventory(itemsToRender = inventory) {
+  function renderInventory(itemsToRender = getCurrentitems()) {
     inventoryGrid.innerHTML = "";
     itemsToRender.forEach((item) => {
       const itemDiv = document.createElement("div");
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <img src="folder.svg" alt="thumbnail">
                 <h3>${item.name}</h3>
             `;
-        itemDiv.onclick = () => openFolder(item.name);
+        itemDiv.onclick = () => openFolder(item);
       } else {
         itemDiv.innerHTML = `
                 <img src="image.svg" alt="thumbnail">
@@ -170,10 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     updateSelection();
   }
-  document.addEventListener("click", (e) => {
-    selectionsmtidk(e.target);
-  });
-
   // SEARCH INVENTORY
   const searchinput = document.getElementById("search-bar");
   const searchButton = document.getElementById("search-btn");

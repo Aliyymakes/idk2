@@ -224,6 +224,7 @@ button.ghost {
   border: none;
   background: none;
   transition: all 0.2s;
+  font-size: xx-large;
 }
 .breadcrumb-item.active {
   background-color: blue;

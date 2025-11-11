@@ -55,8 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       const currentFolder = currentPath[currentPath.length - 1];
 
-      console.log(currentFolder);
-
       return currentFolder.children || [];
     }
   }
@@ -88,16 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
     breadcrumbContainer.appendChild(homeee);
 
     currentPath.forEach((folder, index) => {
-      if (index > 0) {
-        const itemmms = document.createElement("button");
-        itemmms.className =
-          "breadcrumb-item" +
-          (index === currentPath.length - 1 ? " active" : "");
-        console.log(folder.name);
-        itemmms.innerHTML = folder.name;
-        itemmms.onclick = () => navigateTo(index);
-        breadcrumbContainer.appendChild(itemmms);
-      }
+      const itemmms = document.createElement("button");
+      itemmms.className =
+        "breadcrumb-item" + (index === currentPath.length - 1 ? " active" : "");
+      itemmms.innerHTML = folder.name;
+      console.log(folder.name);
+
+      itemmms.onclick = () => navigateTo(index);
+      breadcrumbContainer.appendChild(itemmms);
     });
   }
 
@@ -153,23 +149,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const si = selectedIds.size;
     if (si > 0) trashbutton.style.display = "inline-flex";
     else trashbutton.style.display = "none";
+    console.log(selectedIds);
   }
   function selectionsmtidk(targetElement) {
     selectedDiv = targetElement.closest(".inventory-item");
     if (selectedDiv) {
       selectedDiv.classList.add("selected");
       selectedIds.add(Number(selectedDiv.dataset.id));
-    } else if (!inventoryGrid.contains(targetElement)) {
+      updateSelection();
+    }
+  }
+  document.addEventListener("click", (e) => {
+    if (!inventoryGrid.contains(e.target)) {
       inventoryGrid.querySelectorAll(".inventory-item").forEach((item) => {
         const id = Number(item.dataset.id);
         if (selectedIds.has(id)) item.classList.remove("selected");
         toggleSelect(id);
       });
       selectedIds.clear();
+
       selectedDiv = null;
+      updateSelection();
     }
-    updateSelection();
-  }
+  });
   // SEARCH INVENTORY
   const searchinput = document.getElementById("search-bar");
   const searchButton = document.getElementById("search-btn");
@@ -354,6 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function additem() {
     const name = itemNameInput.value.trim();
+    const type = typeRadios.value;
     const quantity = itemQuantityInput.value.trim();
     const category = categoryinput.value.trim();
 
@@ -365,10 +368,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const newItem = {
       id: nextId,
       name: name,
+      type: type,
       quantity: quantity,
       category: category,
     };
     inventory.push(newItem);
+    saveinventoryToLocalStorage();
     alert("Item added successfully");
     addForm.reset();
     hideAddMenu();

@@ -359,19 +359,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const type = typeRadios.value;
     const quantity = itemQuantityInput.value.trim();
     const category = categoryinput.value.trim();
+    if (type == "item") {
+      if (!name || !category || isNaN(quantity) || quantity < 1) {
+        alert("Please fill all the required fields with walid data.");
+        return;
+      }
 
-    if (!name || !category || isNaN(quantity) || quantity < 1) {
-      alert("Please fill all the required fields with walid data.");
-      return;
+      const newItem = {
+        id: nextId,
+        name: name,
+        type: type,
+        quantity: quantity,
+        category: category,
+      };
+    } else {
+      if (!name) {
+        alert("Please fill all the required fields with walid data.");
+        return;
+      }
+
+      const newItem = {
+        id: nextId,
+        name: name,
+        type: type,
+      };
     }
-
-    const newItem = {
-      id: nextId,
-      name: name,
-      type: type,
-      quantity: quantity,
-      category: category,
-    };
     inventory.push(newItem);
     saveinventoryToLocalStorage();
     alert("Item added successfully");
@@ -380,6 +392,28 @@ document.addEventListener("DOMContentLoaded", () => {
     renderInventory();
   }
   addForm.addEventListener("submit", additem);
+  typeRadios.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      const value = e.target.value;
+      if (value == "item") {
+        quantityRow.style.display = "flex";
+        categoryRow.style.display = "flex";
+      } else {
+        quantityRow.style.display = "none";
+        categoryRow.style.display = "none";
+      }
+    });
+  });
+  displaySelect.addEventListener("change", (e) => {
+    const val = e.target.value;
+    if (val == "upload") {
+      imageUpload.style.display = "block";
+      iconName.style.display = "none";
+    } else if (val == "icon") {
+      imageUpload.style.display = "none";
+      iconName.style.display = "block";
+    }
+  });
 
   render();
 });

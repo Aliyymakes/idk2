@@ -150,7 +150,7 @@ nav a {
   animation: fadeIn 220ms ease;
 }
 #addmenu {
-  width: 420px;
+  width: 40%;
   background: #fff;
   border-radius: 14px;
   padding: 18px;
@@ -168,7 +168,7 @@ nav a {
   margin-bottom: 10px;
 }
 label {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #334155;
   min-width: 80px;
 }

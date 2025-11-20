@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // DATABASE
   const STORAGE_KEY = "keyFlowinventory";
   function saveinventoryToLocalStorage() {
-    localStorage.setitem(STORAGE_KEY, JSON.stringify(inventory));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
   }
   let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
     { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
@@ -356,16 +356,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function additem() {
     const name = itemNameInput.value.trim();
-    const type = typeRadios.value;
-    const quantity = itemQuantityInput.value.trim();
+    const selectedRadio = typeRadios.find((radio) => radio.checked);
+    const type = selectedRadio ? selectedRadio.value : "item";
+    const quantity = parseInt(itemQuantityInput.value.trim(), 10);
     const category = categoryinput.value.trim();
+    let newItem;
     if (type == "item") {
       if (!name || !category || isNaN(quantity) || quantity < 1) {
         alert("Please fill all the required fields with walid data.");
         return;
       }
 
-      const newItem = {
+      newItem = {
         id: nextId,
         name: name,
         type: type,
@@ -378,14 +380,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const newItem = {
+      newItem = {
         id: nextId,
         name: name,
         type: type,
+        children: [],
       };
     }
     inventory.push(newItem);
+    nextId += 1;
     saveinventoryToLocalStorage();
+    categories = categorySet();
     alert("Item added successfully");
     addForm.reset();
     hideAddMenu();

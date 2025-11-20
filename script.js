@@ -1,44 +1,115 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // DATABASE
   const STORAGE_KEY = "keyFlowinventory";
-  function saveinventoryToLocalStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
-  }
-  let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-    { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
-    { id: 2, type: "item", name: "Banana", quantity: 5, category: "Fruit" },
-    {
-      id: 3,
-      type: "item",
-      name: "Carrot",
-      quantity: 8,
-      category: "Vegetable",
-    },
-    {
-      id: 4,
-      type: "folder",
-      name: "idk",
-      children: [
-        {
-          id: 5,
-          type: "item",
-          name: "wirelless muse",
-          quantity: -2,
-          category: "cat",
-        },
-      ],
-    },
-  ];
+  const SEARCH_DEBOUNCE_DELAY = 300;
+  const LONG_PRESS_DELAY = 700;
 
-  function categorySet(source = inventory) {
-    let categories = new Set();
-    source.forEach((item) => {
-      categories.add(item.category);
+  const dom = {
+    breadcrumb: document.getElementById("breadcrumb"),
+    inventoryGrid: document.getElementById("inventoryGrid"),
+    trashButton: document.getElementById("trashh"),
+    searchInput: document.getElementById("search-bar"),
+    searchButton: document.getElementById("search-btn"),
+    contextMenu: document.getElementById("contextMenu"),
+    deleteContextBtn: document.getElementById("deleteContextBtn"),
+    suggestionsBox: document.getElementById("suggestions"),
+    categoryInput: document.getElementById("itemcategory"),
+    addModal: document.getElementById("modal-overlay"),
+    addButton: document.getElementById("addd"),
+    cancelButton: document.getElementById("cancelBtn"),
+    addForm: document.getElementById("add-form"),
+    displaySelect: document.getElementById("displaySelect"),
+    imageUpload: document.getElementById("imageUpload"),
+    iconName: document.getElementById("iconName"),
+    itemName: document.getElementById("itemname"),
+    itemQuantity: document.getElementById("itemquantity"),
+    quantityRow: document.getElementById("quantityRow"),
+    categoryRow: document.getElementById("categoryRow"),
+  };
+  const typeRadios = Array.from(
+    document.querySelectorAll('input[name="type"]')
+  );
+
+  const state = {
+    inventory: normalizeInventory(
+      JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultInventory()
+    ),
+    currentPath: [],
+    selectedIds: new Set(),
+    contextItemId: null,
+    searchTimer: null,
+    longPressTimer: null,
+  };
+
+  let nextId = getNextId(state.inventory);
+  let categories = buildCategorySet(state.inventory);
+
+  function defaultInventory() {
+    return [
+      { id: 1, type: "item", name: "Apple", quantity: 10, category: "Fruit" },
+      { id: 2, type: "item", name: "Banana", quantity: 5, category: "Fruit" },
+      {
+        id: 3,
+        type: "item",
+        name: "Carrot",
+        quantity: 8,
+        category: "Vegetable",
+      },
+      {
+        id: 4,
+        type: "folder",
+        name: "Gadgets",
+        children: [
+          {
+            id: 5,
+            type: "item",
+            name: "Wireless Mouse",
+            quantity: 2,
+            category: "Accessories",
+          },
+        ],
+      },
+    ];
+  }
+
+  function normalizeInventory(list = []) {
+    return list.map((item) => {
+      const isFolder = item.type === "folder" || item.type === "container";
+      const normalized = {
+        ...item,
+        type: isFolder ? "folder" : "item",
+      };
+      if (isFolder) {
+        normalized.children = normalizeInventory(item.children || []);
+      } else {
+        delete normalized.children;
+      }
+      return normalized;
     });
-    return categories;
   }
 
-  // GENERAL: SCROLL
+  function flatten(list = []) {
+    return list.flatMap((item) =>
+      item.type === "folder" ? [item, ...flatten(item.children || [])] : [item]
+    );
+  }
+
+  function getNextId(list = []) {
+    const ids = flatten(list).map((item) => item.id);
+    return ids.length ? Math.max(...ids) + 1 : 1;
+  }
+
+  function buildCategorySet(source = []) {
+    return new Set(
+      flatten(source)
+        .map((item) => item.category)
+        .filter(Boolean)
+    );
+  }
+
+  function persistInventory() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.inventory));
+  }
+
   function disableScrolling() {
     document.body.classList.add("no-scroll");
   }
@@ -46,244 +117,194 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.remove("no-scroll");
   }
 
-  // BREADCRUMBS
-  const breadcrumbContainer = document.getElementById("breadcrumb");
-  let currentPath = [];
-  function getCurrentitems() {
-    if (currentPath.length === 0) {
-      return inventory;
-    } else {
-      const currentFolder = currentPath[currentPath.length - 1];
-
-      return currentFolder.children || [];
-    }
-  }
-  function openFolder(folder) {
-    currentPath.push(folder);
-    render();
+  function getCurrentItems() {
+    if (state.currentPath.length === 0) return state.inventory;
+    return state.currentPath[state.currentPath.length - 1].children || [];
   }
 
-  function navigateTo(index) {
-    if (index === -1) {
-      currentPath = [];
-    } else {
-      currentPath = currentPath.slice(0, index + 1);
-    }
-    render();
-  }
   function render() {
-    renderInventory();
     renderBreadcrumb();
+    renderInventory();
+    updateSelectionControls();
   }
+
   function renderBreadcrumb() {
-    breadcrumbContainer.innerHTML = "";
+    dom.breadcrumb.innerHTML = "";
 
-    const homeee = document.createElement("button");
-    homeee.className =
-      "breadcrumb-item" + (currentPath.length === 0 ? " active" : "");
-    homeee.innerHTML = "Home";
-    homeee.onclick = () => navigateTo(-1);
-    breadcrumbContainer.appendChild(homeee);
+    const home = document.createElement("button");
+    home.className =
+      "breadcrumb-item" + (state.currentPath.length === 0 ? " active" : "");
+    home.textContent = "Home";
+    home.addEventListener("click", () => {
+      state.currentPath = [];
+      clearSelection();
+      render();
+    });
+    dom.breadcrumb.appendChild(home);
 
-    currentPath.forEach((folder, index) => {
-      const itemmms = document.createElement("button");
-      itemmms.className =
-        "breadcrumb-item" + (index === currentPath.length - 1 ? " active" : "");
-      itemmms.innerHTML = folder.name;
-      console.log(folder.name);
-
-      itemmms.onclick = () => navigateTo(index);
-      breadcrumbContainer.appendChild(itemmms);
+    state.currentPath.forEach((folder, index) => {
+      const crumb = document.createElement("button");
+      crumb.className =
+        "breadcrumb-item" +
+        (index === state.currentPath.length - 1 ? " active" : "");
+      crumb.textContent = folder.name;
+      crumb.addEventListener("click", () => {
+        state.currentPath = state.currentPath.slice(0, index + 1);
+        clearSelection();
+        render();
+      });
+      dom.breadcrumb.appendChild(crumb);
     });
   }
 
-  // RENDER INVENTORY
-  let selectedIds = new Set();
-  let selectedDiv = null;
-  const inventoryGrid = document.getElementById("inventoryGrid");
+  function renderInventory(items = getCurrentItems()) {
+    dom.inventoryGrid.innerHTML = "";
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "inventory-item";
+      card.dataset.id = item.id;
+      card.dataset.type = item.type;
+      card.innerHTML = `
+        <img src="${
+          item.type === "folder" ? "folder.svg" : "image.svg"
+        }" alt="thumbnail">
+        <h3>${item.name}</h3>
+      `;
+      if (state.selectedIds.has(item.id)) card.classList.add("selected");
+      card.addEventListener("click", () => handleItemClick(item.id, item.type));
+      dom.inventoryGrid.appendChild(card);
+    });
+  }
 
-  function renderInventory(itemsToRender = getCurrentitems()) {
-    inventoryGrid.innerHTML = "";
-    itemsToRender.forEach((item) => {
-      const itemDiv = document.createElement("div");
-      itemDiv.classList.add("inventory-item");
-      itemDiv.dataset.id = item.id;
-      itemDiv.dataset.type = item.type;
-      // if (selectedIds.has(item.id)) itemDiv.classList.add("selected");
-      if (item.type === "folder") {
-        itemDiv.innerHTML = `
-                <img src="folder.svg" alt="thumbnail">
-                <h3>${item.name}</h3>
-            `;
-        itemDiv.onclick = () => openFolder(item);
-      } else {
-        itemDiv.innerHTML = `
-                <img src="image.svg" alt="thumbnail">
-                <h3>${item.name}</h3>
-            `;
-        itemDiv.onclick = () => selectionsmtidk(itemDiv);
+  function handleItemClick(id, type) {
+    if (type === "folder") {
+      const folder = getCurrentItems().find((entry) => entry.id === id);
+      if (folder) {
+        state.currentPath.push(folder);
+        clearSelection();
+        render();
       }
-      inventoryGrid.appendChild(itemDiv);
-    });
-    updateSelection();
+      return;
+    }
+    toggleSelection(id);
   }
 
-  // SELeCT
-  const trashbutton = document.getElementById("trashh");
-  function toggleSelect(id) {
-    if (selectedIds.has(id)) selectedIds.delete(id);
-    else selectedIds.add(id);
-  }
-  //another delet
-  function deleteitems() {
-    selectedIds.forEach((id) => {
-      inventory = inventory.filter((item) => item.id != id);
-      selectedIds.delete(id);
+  function syncSelectionUI() {
+    dom.inventoryGrid.querySelectorAll(".inventory-item").forEach((card) => {
+      const id = Number(card.dataset.id);
+      card.classList.toggle("selected", state.selectedIds.has(id));
     });
+  }
+
+  function updateSelectionControls() {
+    dom.trashButton.style.display = state.selectedIds.size
+      ? "inline-flex"
+      : "none";
+  }
+
+  function toggleSelection(id) {
+    if (state.selectedIds.has(id)) state.selectedIds.delete(id);
+    else state.selectedIds.add(id);
+    syncSelectionUI();
+    updateSelectionControls();
+  }
+
+  function clearSelection() {
+    state.selectedIds.clear();
+    syncSelectionUI();
+    updateSelectionControls();
+  }
+
+  function removeByIds(ids) {
+    if (!ids.size) return;
+    const list = getCurrentItems();
+    const remaining = list.filter((item) => !ids.has(item.id));
+    list.length = 0;
+    remaining.forEach((item) => list.push(item));
+    persistInventory();
+    clearSelection();
     renderInventory();
   }
-  trashbutton.addEventListener("click", () => {
-    deleteitems();
-  });
-  async function updateSelection() {
-    const si = selectedIds.size;
-    if (si > 0) trashbutton.style.display = "inline-flex";
-    else trashbutton.style.display = "none";
-    console.log(selectedIds);
-  }
-  function selectionsmtidk(targetElement) {
-    selectedDiv = targetElement.closest(".inventory-item");
-    if (selectedDiv) {
-      selectedDiv.classList.add("selected");
-      selectedIds.add(Number(selectedDiv.dataset.id));
-      updateSelection();
-    }
-  }
-  document.addEventListener("click", (e) => {
-    if (!inventoryGrid.contains(e.target)) {
-      inventoryGrid.querySelectorAll(".inventory-item").forEach((item) => {
-        const id = Number(item.dataset.id);
-        if (selectedIds.has(id)) item.classList.remove("selected");
-        toggleSelect(id);
-      });
-      selectedIds.clear();
 
-      selectedDiv = null;
-      updateSelection();
-    }
-  });
-  // SEARCH INVENTORY
-  const searchinput = document.getElementById("search-bar");
-  const searchButton = document.getElementById("search-btn");
-  const SEARCH_DEBOUNCE_DELAY = 300;
-  let searchTimeout;
-  function searchinventory() {
-    const searchTerm = searchinput.value.trim().toLowerCase();
-    if (!searchTerm) {
+  dom.trashButton.addEventListener("click", () =>
+    removeByIds(state.selectedIds)
+  );
+
+  const searchInventory = () => {
+    const term = dom.searchInput.value.trim().toLowerCase();
+    if (!term) {
       renderInventory();
       return;
     }
-    const filtereditems = inventory.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm)
+    clearSelection();
+    const filtered = getCurrentItems().filter((item) =>
+      item.name.toLowerCase().includes(term)
     );
-    renderInventory(filtereditems);
-  }
-  searchButton.addEventListener("click", searchinventory);
-  searchinput.addEventListener("input", () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      searchinventory();
-    }, SEARCH_DEBOUNCE_DELAY);
+    renderInventory(filtered);
+  };
+
+  dom.searchButton.addEventListener("click", searchInventory);
+  dom.searchInput.addEventListener("input", () => {
+    clearTimeout(state.searchTimer);
+    state.searchTimer = setTimeout(searchInventory, SEARCH_DEBOUNCE_DELAY);
   });
-  searchinput.addEventListener("keyup", (event) => {
-    if (event.key == "Enter") {
-      searchinventory();
-    } else if (searchinput.value.trim() === "") {
-      renderInventory();
-    }
+  dom.searchInput.addEventListener("keyup", (event) => {
+    if (event.key === "Enter") searchInventory();
+    else if (!dom.searchInput.value.trim()) renderInventory();
   });
 
-  // CONTEXT MENU
-  const contextMenu = document.getElementById("contextMenu");
-  const longPressThreshold = 700;
-  let isLongPress = false;
-  let pressTimer;
-  let starX, startY;
-  let currentContextitemId = null;
-  const editContextBtn = document.getElementById("editContextBtn");
-  const deleteContextBtn = document.getElementById("deleteContextBtn");
-
-  function showContextMenu(e, targetElement) {
-    e.preventDefault();
-    const itemDiv = targetElement.closest(".inventory-item");
-    if (itemDiv) {
-      currentContextitemId = itemDiv.dataset.id;
-      contextMenu.style.display = "block";
-      contextMenu.style.left = `${e.pageX + 5}px`;
-      contextMenu.style.top = `${e.pageY + 5}px`;
-      disableScrolling();
-    } else {
-      hideContextMenu();
-    }
+  function showContextMenu(event, target) {
+    const itemDiv = target.closest(".inventory-item");
+    if (!itemDiv) return;
+    event.preventDefault();
+    state.contextItemId = Number(itemDiv.dataset.id);
+    dom.contextMenu.style.display = "block";
+    dom.contextMenu.style.left = `${event.pageX + 5}px`;
+    dom.contextMenu.style.top = `${event.pageY + 5}px`;
+    disableScrolling();
   }
+
   function hideContextMenu() {
-    contextMenu.style.display = "none";
-    currentContextitemId = null;
+    dom.contextMenu.style.display = "none";
+    state.contextItemId = null;
     enableScrolling();
   }
-  function handlePressStart(e) {
-    if (e.type === "touchstart") {
-      isLongPress = false;
-      starX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
-      startY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
-      pressTimer = setTimeout(() => {
-        isLongPress = true;
-        showContextMenu(e, e.target);
-      }, longPressThreshold);
-    }
-  }
-  function handlePressEnd() {
-    clearTimeout(pressTimer);
-    isLongPress = false;
-  }
-  inventoryGrid.addEventListener("contextmenu", (e) =>
+
+  dom.inventoryGrid.addEventListener("contextmenu", (e) =>
     showContextMenu(e, e.target)
   );
-  inventoryGrid.addEventListener("touchstart", handlePressStart);
-  inventoryGrid.addEventListener("touchend", handlePressEnd);
-  inventoryGrid.addEventListener("touchcancel", handlePressEnd);
-  document.addEventListener("click", (e) => {
-    if (!contextMenu.contains(e.target)) {
-      hideContextMenu();
-    }
+  dom.inventoryGrid.addEventListener("touchstart", (e) => {
+    clearTimeout(state.longPressTimer);
+    state.longPressTimer = setTimeout(
+      () => showContextMenu(e, e.target),
+      LONG_PRESS_DELAY
+    );
   });
-
-  // DELETE
-  async function handleContextAction(action) {
-    if (!currentContextitemId) return;
-    if (action === "delete") {
-      if (confirm("are you sure you want to delete this item?'")) {
-        inventory = inventory.filter((item) => item.id != currentContextitemId);
-        alert("item deleted succesfully!");
-        renderInventory();
-      }
-    }
-    hideContextMenu();
-  }
-  deleteContextBtn.addEventListener("click", () =>
-    handleContextAction("delete")
+  dom.inventoryGrid.addEventListener("touchend", () =>
+    clearTimeout(state.longPressTimer)
+  );
+  dom.inventoryGrid.addEventListener("touchcancel", () =>
+    clearTimeout(state.longPressTimer)
   );
 
-  // ADD ITEM
-  const suggestionsBox = document.getElementById("suggestions");
-  const categoryinput = document.getElementById("itemcategory");
+  document.addEventListener("click", (e) => {
+    const clickedInsideMenu = dom.contextMenu.contains(e.target);
+    const clickedInventory = dom.inventoryGrid.contains(e.target);
+    if (!clickedInsideMenu) hideContextMenu();
+    if (!clickedInventory) clearSelection();
+  });
 
-  let categories = categorySet();
+  dom.deleteContextBtn.addEventListener("click", () => {
+    if (!state.contextItemId) return;
+    const confirmed = confirm("Are you sure you want to delete this item?");
+    if (confirmed) removeByIds(new Set([state.contextItemId]));
+    hideContextMenu();
+  });
 
   function showSuggestions(value) {
-    suggestionsBox.innerHTML = "";
+    dom.suggestionsBox.innerHTML = "";
     if (!value) {
-      suggestionsBox.style.display = "none";
+      dom.suggestionsBox.style.display = "none";
       return;
     }
 
@@ -291,133 +312,108 @@ document.addEventListener("DOMContentLoaded", () => {
       cat.toLowerCase().startsWith(value.toLowerCase())
     );
 
-    if (matches.length === 0) {
-      suggestionsBox.style.display = "none";
+    if (!matches.length) {
+      dom.suggestionsBox.style.display = "none";
       return;
     }
+
     matches.forEach((cat) => {
       const div = document.createElement("div");
       div.textContent = cat;
-      div.classList.add("suggestion");
+      div.className = "suggestion";
       div.addEventListener("click", () => {
-        categoryinput.value = cat;
-        suggestionsBox.style.display = "none";
+        dom.categoryInput.value = cat;
+        dom.suggestionsBox.style.display = "none";
       });
-      suggestionsBox.appendChild(div);
+      dom.suggestionsBox.appendChild(div);
     });
-    suggestionsBox.style.display = "block";
+    dom.suggestionsBox.style.display = "block";
   }
-  categoryinput.addEventListener("input", () => {
-    showSuggestions(categoryinput.value.trim());
-  });
+  dom.categoryInput.addEventListener("input", () =>
+    showSuggestions(dom.categoryInput.value.trim())
+  );
 
-  // ADD MODAL MENU
-  const cancelbutton = document.getElementById("cancelBtn");
-  const addbutton = document.getElementById("addd");
-  const addModal = document.getElementById("modal-overlay");
-  const addForm = document.getElementById("add-form");
-
-  function showaddmenu() {
-    addModal.style.display = "flex";
-    addForm.reset();
+  function showAddMenu() {
+    dom.addModal.style.display = "flex";
+    dom.addForm.reset();
+    updateTypeRows();
     disableScrolling();
   }
+
   function hideAddMenu() {
-    addModal.style.display = "none";
+    dom.addModal.style.display = "none";
     enableScrolling();
   }
-  addbutton.addEventListener("click", () => {
-    showaddmenu();
-  });
-  cancelbutton.addEventListener("click", hideAddMenu);
-  addModal.addEventListener("click", (e) => {
-    if (!addForm.contains(e.target)) {
-      hideAddMenu();
-    }
+
+  dom.addButton.addEventListener("click", showAddMenu);
+  dom.cancelButton.addEventListener("click", hideAddMenu);
+  dom.addModal.addEventListener("click", (e) => {
+    if (!dom.addForm.contains(e.target)) hideAddMenu();
   });
 
-  // ADD ITEM REAL
+  function updateTypeRows() {
+    const selected = typeRadios.find((radio) => radio.checked);
+    const isItem = !selected || selected.value === "item";
+    dom.quantityRow.style.display = isItem ? "flex" : "none";
+    dom.categoryRow.style.display = isItem ? "flex" : "none";
+  }
 
-  let nextId =
-    inventory.length > 0
-      ? Math.max(...inventory.map((item) => item.id)) + 1
-      : 1;
-  const modalTitle = document.getElementById("modalTitle");
-  const displaySelect = document.getElementById("displaySelect");
-  const imageUpload = document.getElementById("imageUpload");
-  const iconName = document.getElementById("iconName");
-  const typeRadios = Array.from(
-    document.querySelectorAll('input[name="type"]')
+  typeRadios.forEach((radio) =>
+    radio.addEventListener("change", updateTypeRows)
   );
-  const itemNameInput = document.getElementById("itemname");
-  const itemQuantityInput = document.getElementById("itemquantity");
-  const quantityRow = document.getElementById("quantityRow");
-  const categoryRow = document.getElementById("categoryRow");
 
-  function additem() {
-    const name = itemNameInput.value.trim();
+  dom.displaySelect.addEventListener("change", (e) => {
+    const val = e.target.value;
+    dom.imageUpload.style.display = val === "upload" ? "block" : "none";
+    dom.iconName.style.display = val === "icon" ? "block" : "none";
+  });
+
+  dom.addForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = dom.itemName.value.trim();
     const selectedRadio = typeRadios.find((radio) => radio.checked);
-    const type = selectedRadio ? selectedRadio.value : "item";
-    const quantity = parseInt(itemQuantityInput.value.trim(), 10);
-    const category = categoryinput.value.trim();
-    let newItem;
-    if (type == "item") {
-      if (!name || !category || isNaN(quantity) || quantity < 1) {
-        alert("Please fill all the required fields with walid data.");
-        return;
-      }
+    const typeValue = selectedRadio ? selectedRadio.value : "item";
+    const type = typeValue === "container" ? "folder" : typeValue;
+    const quantity = parseInt(dom.itemQuantity.value.trim(), 10);
+    const category = dom.categoryInput.value.trim();
 
-      newItem = {
-        id: nextId,
-        name: name,
-        type: type,
-        quantity: quantity,
-        category: category,
-      };
-    } else {
-      if (!name) {
-        alert("Please fill all the required fields with walid data.");
-        return;
-      }
-
-      newItem = {
-        id: nextId,
-        name: name,
-        type: type,
-        children: [],
-      };
+    if (
+      type === "item" &&
+      (!name || !category || Number.isNaN(quantity) || quantity < 1)
+    ) {
+      alert("Please fill all the required fields with valid data.");
+      return;
     }
-    inventory.push(newItem);
+    if (type === "folder" && !name) {
+      alert("Please fill all the required fields with valid data.");
+      return;
+    }
+
+    const newItem =
+      type === "item"
+        ? {
+            id: nextId,
+            name,
+            type,
+            quantity,
+            category,
+          }
+        : {
+            id: nextId,
+            name,
+            type: "folder",
+            children: [],
+          };
+
+    const targetList = getCurrentItems();
+    targetList.push(newItem);
     nextId += 1;
-    saveinventoryToLocalStorage();
-    categories = categorySet();
+    persistInventory();
+    categories = buildCategorySet(state.inventory);
     alert("Item added successfully");
-    addForm.reset();
+    dom.addForm.reset();
     hideAddMenu();
     renderInventory();
-  }
-  addForm.addEventListener("submit", additem);
-  typeRadios.forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-      const value = e.target.value;
-      if (value == "item") {
-        quantityRow.style.display = "flex";
-        categoryRow.style.display = "flex";
-      } else {
-        quantityRow.style.display = "none";
-        categoryRow.style.display = "none";
-      }
-    });
-  });
-  displaySelect.addEventListener("change", (e) => {
-    const val = e.target.value;
-    if (val == "upload") {
-      imageUpload.style.display = "block";
-      iconName.style.display = "none";
-    } else if (val == "icon") {
-      imageUpload.style.display = "none";
-      iconName.style.display = "block";
-    }
   });
 
   render();

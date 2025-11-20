@@ -247,7 +247,6 @@ button.ghost {
   border: 1px solid #ccc;
   overflow-y: auto;
   z-index: 1000;
-  display: none;
   max-height: 150px;
   display: none;
 }
